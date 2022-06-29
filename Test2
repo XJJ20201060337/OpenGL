@@ -1,0 +1,87 @@
+#include <gl/glut.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+int size;
+int color;
+void lineDDA(int x0, int y0, int x1, int y1) {
+	int x, dx, dy, y;
+	float m;
+	dx = x1 - x0;
+	dy = y1 - y0;
+	m = dy / dx;
+	y = y0;
+	switch (color){
+	case 0:
+		glColor3f(1, 0, 0);
+		break;
+	case 1:
+		glColor3f(0, 1, 0);
+		break;
+	case 2:
+		glColor3f(0, 0, 1);
+		break;
+	case 3:
+		glColor3f(1, 1, 0);
+		break;
+	case 4:
+		glColor3f(0, 1, 1);
+		break;
+	case 5:
+		glColor3f(1, 0, 1);
+		break;
+	case 6:
+		glColor3f(1, 1, 1);
+		break;
+	default:
+		printf("无效的输入！\n");
+	}
+	glPointSize(size);
+	for (x = x0; x <= x1; x++) {
+		glBegin(GL_POINTS);
+		glVertex2i(x, (int)(y + 0.5));
+		glEnd();
+		y = y + m;
+	}
+}
+
+void myDisplay(void) {
+	glClear(GL_COLOR_BUFFER_BIT);
+
+	lineDDA(10, 10, 200, 300);
+	glBegin(GL_LINES);
+	glColor3f(1.0, 0.0f, 0.0f);
+	glVertex2f(100.0, 0.0);
+	glEnd();
+	glFlush();
+}
+
+void Init() {
+	glClearColor(0.0, 0.0, 0.0, 0.0);
+	glShadeModel(GL_FLAT);
+}
+
+void Reshape(int w, int h) {
+	glViewport(0, 0, (GLsizei)w, (GLsizei)h);
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	gluOrtho2D(0.0, (GLdouble)w, 0.0, (GLdouble)h);
+}
+
+int main(int argc, char** argv) {
+	printf("请输入画线颜色：\n");
+	printf("0_红；1_绿；2_蓝；3_黄；4_青；5_玫瑰；6_白\n");
+	scanf_s("%d", &color);
+	printf("请输入画线宽度：\n");
+	scanf_s("%d", &size);
+	glutInit(&argc, argv);
+	glutInitDisplayMode(GLUT_RGB | GLUT_SINGLE);
+	glutInitWindowPosition(100,100);
+	glutInitWindowSize(400, 400);
+	glutCreateWindow("DDALine");
+	Init();
+	glutDisplayFunc(myDisplay);
+	glutReshapeFunc(Reshape);
+	glutMainLoop();
+	return 0;
+}
