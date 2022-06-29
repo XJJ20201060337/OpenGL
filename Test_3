@@ -1,0 +1,134 @@
+#include<gl/glut.h>
+#include<algorithm>
+using namespace std;
+float window_size = 800;
+int numbers = 20;
+int xs = -115, ys = -119, xe = 35, ye = 59;
+
+void InitEnvironment()  //对环境进行初始化操作
+{
+	glClearColor(0.0, 0.0, 0.0, 0);
+	glClear(GL_COLOR_BUFFER_BIT);
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+	gluOrtho2D(-numbers, numbers, -numbers, numbers);
+}
+
+void draw_point(float x, float y) {
+	glColor3f(0.5, 0.5, 0.5);
+	glRectf(x, y, x + 1, y + 1);
+}
+void draw_point2(float x, float y) {
+	draw_point(x, y);
+	glPointSize(8);
+	glColor3f(0.0, 0.0, 1.0);
+	glBegin(GL_POINTS);
+	glVertex3f(x, y, 0.0);
+	glEnd();
+	glFlush();
+}
+
+void Bresenhamline(int x0, int y0, int x1, int y1) {
+	//支持各种斜率，支持两点颠倒
+	int x, y, dx, dy;
+	float k, e;
+	dx = x1 - x0, dy = y1 - y0;
+	if (dy == 0) {//平行坐标轴
+		x = min(x0, x1);
+		for (int i = 0; i <= abs(dx); i++) {
+			draw_point(x, y0);
+			x++;
+		}
+		return;
+	}
+	if (dx == 0) {//斜率不存在
+		y = min(y0, y1);
+		for (int i = 0; i <= abs(dy); i++) {
+			draw_point(x0, y);
+			y++;
+		}
+		return;
+	}
+	k = float(dy) / float(dx);
+	x = x0, y = y0;
+
+	if (k >= 0) {
+		e = -0.5;
+		x = min(x0, x1);
+		y = min(y0, y1);
+	}
+	else {
+		e = 0.5;
+		x = min(x0, x1);
+		y = max(y0, y1);
+	}
+	if (0 <= k && k <= 1) {
+		for (int i = 0; i <= abs(dx); i++) {
+			draw_point(x, y);
+			x++, e += k;
+			if (e >= 0) { y++; e--; }
+		}
+	}
+	else if (k > 1) {
+		k = float(dx) / float(dy);
+		for (int i = 0; i <= abs(dy); i++) {
+			draw_point(x, y);
+			y++, e += k;
+			if (e >= 0) { x++; e--; }
+		}
+	}
+	else if (-1 <= k && k < 0) {
+		for (int i = 0; i <= abs(dx); i++) {
+			draw_point(x, y);
+			x++, e += k;
+			if (e <= 0) { y--; e++; }
+		}
+	}
+	else if (k < -1) {
+		k = float(dx) / float(dy);
+		for (int i = 0; i <= abs(dy); i++) {
+			draw_point(x, y);
+			y--, e += k;
+			if (e <= 0) { x++; e++; }
+		}
+	}
+}
+void myDisplay(void) {
+	//绘制坐标系
+	glColor3f(1.0, 1.0, 0);
+	for (int i = 1; i < numbers * 2; i++) {
+		glBegin(GL_LINES);
+		glVertex2f(-numbers + i, -numbers);
+		glVertex2f(-numbers + i, numbers);
+		glVertex2f(-numbers, -numbers + i);
+		glVertex2f(numbers, -numbers + i);
+		glEnd();
+	}
+	glColor3f(1.0, 0, 0);
+	glBegin(GL_LINES);
+	glVertex2f(-numbers, 0);
+	glVertex2f(numbers, 0);
+	glVertex2f(0, -numbers);
+	glVertex2f(0, numbers);
+	glEnd();
+
+	Bresenhamline(xs, ys, xe, ye);
+	//绘制初始直线
+	glBegin(GL_LINES);
+	glColor3f(1.0, 0.0, 0.0);
+	glVertex2f(xs, ys); glVertex2f(xe, ye);
+	glEnd();
+	glFlush();
+}
+int main(int argc, char* argv[])
+{
+	glutInit(&argc, argv);   //初始化
+	glutInitDisplayMode(GLUT_RGB | GLUT_SINGLE);
+	glutInitWindowPosition(100, 100);
+	glutInitWindowSize(window_size, window_size);
+	glutCreateWindow("Bresen算法画直线");
+	InitEnvironment();   //初始化
+	glutDisplayFunc(&myDisplay);   //回调函数
+	glutMainLoop();    //持续显示，当窗口改变会重新绘制图形
+	return 0;
+}
